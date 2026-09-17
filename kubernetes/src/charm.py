@@ -1244,9 +1244,6 @@ class MySQLOperatorCharm(MySQLCharmBase, TypedCharmBase[CharmConfig]):
         # from the cluster at a time (to avoid split-brain or lack of majority issues)
         self._mysql.remove_instance(self.unit_label, from_instance=from_instance)
 
-        # Inform other hooks of current status
-        self.unit_peer_data["unit-status"] = "removing"
-
 
 if __name__ == "__main__":
     main(MySQLOperatorCharm)

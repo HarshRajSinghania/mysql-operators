@@ -421,9 +421,6 @@ class MySQLOperatorCharm(MySQLCharmBase, TypedCharmBase[CharmConfig]):
         # from the cluster at a time (to avoid split-brain or lack of majority issues)
         self._mysql.remove_instance(self.unit_label, from_instance=from_instance)
 
-        # Inform other hooks of current status
-        self.unit_peer_data["unit-status"] = "removing"
-
     def _charm_tracing_config(self) -> None:
         """Utility function to set tracing destination."""
         if not self._grafana_agent.is_ready():
