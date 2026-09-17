@@ -14,11 +14,12 @@ on:
 jobs:
   tag:
     name: Create charm refresh tag
-    uses: canonical/data-platform-workflows/.github/workflows/tag_charm_edge.yaml@v52
+    uses: canonical/data-platform-workflows/.github/workflows/tag_charm_edge.yaml@v53
     with:
       track: '8.4'
     permissions:
       contents: write  # Needed to create git tag
+    cache-mode: none
 
   build:
     name: Build charm | ${{ matrix.path }}
@@ -30,11 +31,12 @@ jobs:
         path:
           - kubernetes
           - machines
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v52
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v53
     with:
       path-to-charm-directory: ${{ matrix.path }}
     permissions:
       contents: read
+    cache-mode: none
 
   integration-test:
     name: Integration tests
@@ -46,12 +48,20 @@ jobs:
         path:
           - kubernetes
           - machines
-    uses: ./.github/workflows/integration_test.yaml
+    uses: $/.github/workflows/integration_test.yaml
     with:
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
       path-to-charm-directory: ${{ matrix.path }}
-    secrets: inherit
+    secrets:
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      GCP_ACCESS_KEY: ${{ secrets.GCP_ACCESS_KEY }}
+      GCP_SECRET_KEY: ${{ secrets.GCP_SECRET_KEY }}
+      UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+      LANDSCAPE_ACCOUNT_NAME: ${{ secrets.LANDSCAPE_ACCOUNT_NAME }}
+      LANDSCAPE_REGISTRATION_KEY: ${{ secrets.LANDSCAPE_REGISTRATION_KEY }}
     permissions: {}
+    cache-mode: none
 
 # TODO: Uncomment when MySQL 8.4/stable channel has releases
 #  release-test:
@@ -64,11 +74,20 @@ jobs:
 #        path:
 #          - kubernetes
 #          - machines
-#    uses: ./.github/workflows/release_test.yaml
+#    uses: $/.github/workflows/release_test.yaml
 #    with:
 #      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
 #      path-to-charm-directory: ${{ matrix.path }}
-#    secrets: inherit
+#    secrets:
+#      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+#      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+#      GCP_ACCESS_KEY: ${{ secrets.GCP_ACCESS_KEY }}
+#      GCP_SECRET_KEY: ${{ secrets.GCP_SECRET_KEY }}
+#      UBUNTU_PRO_TOKEN: ${{ secrets.UBUNTU_PRO_TOKEN }}
+#      LANDSCAPE_ACCOUNT_NAME: ${{ secrets.LANDSCAPE_ACCOUNT_NAME }}
+#      LANDSCAPE_REGISTRATION_KEY: ${{ secrets.LANDSCAPE_REGISTRATION_KEY }}
+#    permissions: {}
+#    cache-mode: none
 
   release:
     name: Release charm | ${{ matrix.path }}
@@ -83,7 +102,7 @@ jobs:
         path:
           - kubernetes
           - machines
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v52
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm_edge.yaml@v53
     with:
       track: ${{ needs.tag.outputs.track }}
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
@@ -92,3 +111,4 @@ jobs:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
     permissions:
       contents: write  # Needed to create git tags
+    cache-mode: none
